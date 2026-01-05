@@ -7,4 +7,5 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/trenutno', [WeatherApiController::class, 'current'])->name('weather.current');
+Route::get('/weather', [WeatherApiController::class, 'form'])->name('weather.form');
+Route::post('/weather', [WeatherApiController::class, 'search'])->name('weather.search');

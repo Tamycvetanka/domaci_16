@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="sr">
 <head>
     <meta charset="utf-8">
     <title>Trenutno vreme</title>
@@ -8,44 +8,52 @@
 </head>
 <body class="bg-light">
 
-<div class="container py-5">
-    <h2 class="mb-4">Trenutno vreme</h2>
+<div class="container py-5" style="max-width: 720px;">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h2 class="mb-4">Trenutno vreme</h2>
 
-    <form method="GET" action="{{ route('weather.current') }}" class="row g-2 mb-4">
-        <div class="col-8">
-            <input class="form-control" name="q" value="{{ $q }}" placeholder="Grad (npr. Skopje)">
-        </div>
-        <div class="col-4">
-            <button class="btn btn-primary w-100">Prikaži</button>
-        </div>
-    </form>
-
-    @if ($error)
-        <div class="alert alert-danger">{{ $error }}</div>
-    @endif
-
-    @if ($data)
-        <div class="card">
-            <div class="card-body">
-                <h4>{{ $data['location']['name'] }}, {{ $data['location']['country'] }}</h4>
-
-                <div class="display-4">
-                    {{ $data['current']['temp_c'] }}°C
+            <form method="POST" action="{{ route('weather.search') }}" class="row g-2 mb-3">
+                @csrf
+                <div class="col-8">
+                    <input
+                        class="form-control @error('city') is-invalid @enderror"
+                        name="city"
+                        value="{{ old('city') }}"
+                        placeholder="Grad (npr. Skopje)"
+                    >
+                    @error('city')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
-
-                <div class="text-muted mb-3">
-                    {{ $data['current']['condition']['text'] }}
+                <div class="col-4">
+                    <button class="btn btn-primary w-100">Prikaži</button>
                 </div>
+            </form>
+
+            @if(isset($city))
+                <hr>
+
+                <h3 class="h5 mb-1">{{ $city }}</h3>
+                <div class="fs-2 fw-bold mb-1">{{ $temp }} °C</div>
+
+                @if(!empty($description))
+                    <div class="text-muted mb-3">{{ $description }}</div>
+                @endif
 
                 <ul class="list-group">
-                    <li class="list-group-item">Osećaj: {{ $data['current']['feelslike_c'] }}°C</li>
-                    <li class="list-group-item">Vlažnost: {{ $data['current']['humidity'] }}%</li>
-                    <li class="list-group-item">Vetar: {{ $data['current']['wind_kph'] }} km/h</li>
-                    <li class="list-group-item">Pritisak: {{ $data['current']['pressure_mb'] }} mb</li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Osećaj</span>
+                        <span>{{ $feels_like }} °C</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Vlažnost</span>
+                        <span>{{ $humidity }} %</span>
+                    </li>
                 </ul>
-            </div>
+            @endif
         </div>
-    @endif
+    </div>
 </div>
 
 </body>

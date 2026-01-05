@@ -7,31 +7,52 @@ use Illuminate\Support\Facades\Http;
 
 class WeatherApiController extends Controller
 {
-    public function current(Request $request)
+    public function form()
     {
-        $q = trim($request->get('q', 'Skopje'));
+        return view('weather.current');
+    }
 
-        $response = Http::withoutVerifying()->get(
-            config('services.weatherapi.base') . '/current.json',
-            [
-                'key' => config('services.weatherapi.key'),
-                'q' => $q,
-                'aqi' => 'no',
-            ]
-        );
+    public function current()
+    {
+        return view('weather.current');
+    }
 
-        if (!$response->ok()) {
-            return view('weather.current', [
-                'q' => $q,
-                'data' => null,
-                'error' => 'API ERROR',
-            ]);
+    public function search(Request $request)
+    {
+        $request->validate([
+            'city' => ['required', 'string', 'min:2'],
+        ]);
+
+        $key  = config('services.weatherapi.key');
+        $base = config('services.weatherapi.base');
+
+        if (!$key) {
+            return back()
+                ->withErrors(['city' => 'WEATHERAPI_KEY nije podešen u .env fajlu.'])
+                ->withInput();
         }
 
+
+        $response = Http::withoutVerifying()->get($base . '/current.json', [
+            'key'  => $key,
+            'q'    => $request->city,
+            'lang' => 'sr',
+        ]);
+
+        if ($response->failed()) {
+            return back()
+                ->withErrors(['city' => 'Grad nije pronađen ili API ne radi.'])
+                ->withInput();
+        }
+
+        $data = $response->json();
+
         return view('weather.current', [
-            'q' => $q,
-            'data' => $response->json(),
-            'error' => null,
+            'city'        => $data['location']['name'] ?? $request->city,
+            'temp'        => $data['current']['temp_c'] ?? null,
+            'feels_like'  => $data['current']['feelslike_c'] ?? null,
+            'humidity'    => $data['current']['humidity'] ?? null,
+            'description' => $data['current']['condition']['text'] ?? null,
         ]);
     }
 }
